@@ -1,14 +1,4 @@
 import {
-  APIKEY_FUN_AFFILIATE_URL,
-  APIKEY_FUN_BASE_URL_OPTIONS,
-  APIKEY_FUN_DASHBOARD_URL,
-  APIKEY_FUN_DISPLAY_NAME,
-  APIKEY_FUN_PROTOCOLS,
-  APIKEY_FUN_PROVIDER_NAME,
-  getApiKeyFunProtocolUrls,
-  resolveApiKeyFunBaseUrl,
-} from './sponsor';
-import {
   CODE0_AFFILIATE_URL,
   CODE0_BASE_URL_OPTIONS,
   CODE0_DISPLAY_NAME,
@@ -51,20 +41,6 @@ export interface SponsorProviderDefinition {
 }
 
 const SPONSOR_DEFINITIONS: Record<SponsorProviderBrand, SponsorProviderDefinition> = {
-  apikeyFun: {
-    brand: 'apikeyFun',
-    displayName: APIKEY_FUN_DISPLAY_NAME,
-    providerName: APIKEY_FUN_PROVIDER_NAME,
-    affiliateUrl: APIKEY_FUN_AFFILIATE_URL,
-    dashboardUrl: APIKEY_FUN_DASHBOARD_URL,
-    protocols: ['codex', 'claude', 'openai'],
-    protocolLabels: APIKEY_FUN_PROTOCOLS,
-    defaultProtocol: 'codex',
-    baseUrlOptions: APIKEY_FUN_BASE_URL_OPTIONS,
-    supportsUsageCheck: true,
-    resolveBaseUrl: resolveApiKeyFunBaseUrl,
-    getProtocolUrls: getApiKeyFunProtocolUrls,
-  },
   code0: {
     brand: 'code0',
     displayName: CODE0_DISPLAY_NAME,
@@ -80,9 +56,8 @@ const SPONSOR_DEFINITIONS: Record<SponsorProviderBrand, SponsorProviderDefinitio
   },
 };
 
-export const isMultiProtocolSponsorBrand = (
-  brand: ProviderBrand
-): brand is SponsorProviderBrand => brand === 'apikeyFun' || brand === 'code0';
+export const isMultiProtocolSponsorBrand = (brand: ProviderBrand): brand is SponsorProviderBrand =>
+  brand === 'code0';
 
 export const getSponsorProviderDefinition = (
   brand: SponsorProviderBrand

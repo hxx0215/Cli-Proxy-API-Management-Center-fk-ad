@@ -43,8 +43,7 @@ interface ProviderResourceTableProps {
 
 const columnWidths = ['180px', '220px', '72px', '138px', '174px', '176px'];
 
-const isSponsorResource = (resource: ProviderResource): boolean =>
-  resource.brand === 'apikeyFun' || resource.brand === 'code0';
+const isSponsorResource = (resource: ProviderResource): boolean => resource.brand === 'code0';
 
 const getUsageProvider = (resource: ProviderResource): string =>
   resource.brand === 'claudeApi' ? 'claude' : resource.brand;

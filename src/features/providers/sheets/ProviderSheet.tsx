@@ -242,13 +242,11 @@ export function ProviderSheet({
         route:
           state.brand === 'openaiCompatibility'
             ? '/ai-providers/openai'
-            : state.brand === 'apikeyFun'
-              ? '/quick-start'
-              : state.brand === 'claudeApi'
-                ? '/ai-providers/claudeapi'
-                : state.brand === 'code0'
-                  ? '/ai-providers/code0'
-                  : `/ai-providers/${state.brand}`,
+            : state.brand === 'claudeApi'
+              ? '/ai-providers/claudeapi'
+              : state.brand === 'code0'
+                ? '/ai-providers/code0'
+                : `/ai-providers/${state.brand}`,
       })}
       footer={footer}
       closeDisabled={submitting}

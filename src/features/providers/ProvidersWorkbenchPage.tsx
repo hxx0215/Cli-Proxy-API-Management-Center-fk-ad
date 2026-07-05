@@ -15,9 +15,7 @@ import { ProviderHeaderCard } from './components/ProviderHeaderCard';
 import { ProviderCategoryList } from './components/ProviderCategoryList';
 import { ProviderResourcePanel } from './components/ProviderResourcePanel';
 import type { ProviderPanelControls } from './components/ProviderResourcePanel';
-import { SponsorQuickStartPanel } from './components/SponsorQuickStartPanel';
 import { ProviderSheet, type ProviderSheetHandle } from './sheets/ProviderSheet';
-import { APIKEY_FUN_DISPLAY_NAME } from './sponsor';
 import { isMultiProtocolSponsorBrand } from './sponsorDefinitions';
 import { useProviderWorkbench } from './useProviderWorkbench';
 import {
@@ -149,10 +147,7 @@ export function ProvidersWorkbenchPage({ fixedBrand }: ProvidersWorkbenchPagePro
 
   const allGroups = useMemo(() => workbench.snapshot?.groups ?? [], [workbench.snapshot]);
   const groups = useMemo(
-    () =>
-      fixedBrand
-        ? allGroups.filter((group) => group.id === fixedBrand)
-        : allGroups.filter((group) => group.id !== 'apikeyFun'),
+    () => (fixedBrand ? allGroups.filter((group) => group.id === fixedBrand) : allGroups),
     [allGroups, fixedBrand]
   );
   const firstVisibleBrand = groups[0]?.id ?? fixedBrand ?? 'gemini';
@@ -275,23 +270,11 @@ export function ProvidersWorkbenchPage({ fixedBrand }: ProvidersWorkbenchPagePro
     () => groups.filter((g) => g.resources.some((r) => !r.flags.isPlaceholder)).length,
     [groups]
   );
-  const quickStartResource = useMemo(
-    () =>
-      fixedBrand === 'apikeyFun' && activeGroup
-        ? (activeGroup.resources.find((r) => !r.flags.isPlaceholder) ?? null)
-        : null,
-    [activeGroup, fixedBrand]
-  );
 
   const updatedAtLabel = workbench.snapshot
     ? formatDateTime(workbench.snapshot.fetchedAt, i18n.language)
     : t('providersPage.modelCatalog.notLoaded');
-  const headerTitle =
-    fixedBrand === 'apikeyFun'
-      ? quickStartResource
-        ? APIKEY_FUN_DISPLAY_NAME
-        : t('nav.quick_start')
-      : undefined;
+  const headerTitle = fixedBrand ? t(`providersPage.providerNames.${fixedBrand}`) : undefined;
 
   const openCreate = useCallback(() => {
     const brand = activeBrand;
@@ -395,7 +378,7 @@ export function ProvidersWorkbenchPage({ fixedBrand }: ProvidersWorkbenchPagePro
           onNew={() => {}}
           isNewDisabled
           showNewAction={!fixedBrand}
-          showSummary={fixedBrand !== 'apikeyFun'}
+          showSummary
         />
       </div>
     );
@@ -412,9 +395,8 @@ export function ProvidersWorkbenchPage({ fixedBrand }: ProvidersWorkbenchPagePro
         isFetching={workbench.isFetching}
         isNewDisabled={disableMutations}
         showNewAction={!fixedBrand}
-        showSummary={fixedBrand !== 'apikeyFun'}
+        showSummary
         newLabel={t('providersPage.actions.new')}
-        variant={fixedBrand === 'apikeyFun' ? 'quickStart' : undefined}
         onRefresh={() => void handleRefresh()}
         onNew={openCreate}
       />
@@ -440,29 +422,21 @@ export function ProvidersWorkbenchPage({ fixedBrand }: ProvidersWorkbenchPagePro
             }}
           />
         ) : null}
-        {fixedBrand === 'apikeyFun' ? (
-          <SponsorQuickStartPanel
-            resource={quickStartResource}
-            workbench={workbench}
-            mutationDisabled={disableMutations}
-          />
-        ) : (
-          <ProviderResourcePanel
-            group={activeGroup}
-            filter={filter}
-            onFilterChange={(value) => updateActiveFilterState({ filter: value })}
-            filteredResources={visibleResources}
-            selectedId={sheetState.open ? (sheetState.resource?.id ?? null) : null}
-            disableMutations={disableMutations}
-            usageByProvider={usageByProvider}
-            toolbarControls={toolbarControls}
-            onView={openView}
-            onEdit={openEdit}
-            onDelete={handleDelete}
-            onToggleDisabled={handleToggleDisabled}
-            onCreate={openCreate}
-          />
-        )}
+        <ProviderResourcePanel
+          group={activeGroup}
+          filter={filter}
+          onFilterChange={(value) => updateActiveFilterState({ filter: value })}
+          filteredResources={visibleResources}
+          selectedId={sheetState.open ? (sheetState.resource?.id ?? null) : null}
+          disableMutations={disableMutations}
+          usageByProvider={usageByProvider}
+          toolbarControls={toolbarControls}
+          onView={openView}
+          onEdit={openEdit}
+          onDelete={handleDelete}
+          onToggleDisabled={handleToggleDisabled}
+          onCreate={openCreate}
+        />
       </div>
 
       {!fixedBrand ? (

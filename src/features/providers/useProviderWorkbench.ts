@@ -9,7 +9,6 @@ import {
 } from '@/components/providers/utils';
 import type { GeminiKeyConfig, ModelAlias, OpenAIProviderConfig, ProviderKeyConfig } from '@/types';
 import {
-  apiKeyFunToResource,
   claudeApiToResource,
   claudeToResource,
   code0ToResource,
@@ -28,12 +27,6 @@ import type {
   SponsorKeyEntryInput,
   SponsorProviderBrand,
 } from './types';
-import {
-  buildApiKeyFunRaw,
-  isApiKeyFunClaudeProvider,
-  isApiKeyFunCodexProvider,
-  isApiKeyFunOpenAIProvider,
-} from './sponsor';
 import { CLAUDE_API_BASE_URL, isClaudeApiProvider } from './claudeApi';
 import {
   buildCode0Raw,
@@ -42,10 +35,7 @@ import {
   isCode0GeminiProvider,
   isCode0OpenAIProvider,
 } from './code0';
-import {
-  getSponsorProviderDefinition,
-  type SponsorProtocolUrls,
-} from './sponsorDefinitions';
+import { getSponsorProviderDefinition, type SponsorProtocolUrls } from './sponsorDefinitions';
 
 export interface UseProviderWorkbenchResult {
   connected: boolean;
@@ -392,7 +382,7 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
           break;
         case 'codex':
           resources = (config.codexApiKeys ?? []).reduce<ProviderResource[]>((out, item, index) => {
-            if (!isApiKeyFunCodexProvider(item) && !isCode0CodexProvider(item)) {
+            if (!isCode0CodexProvider(item)) {
               out.push(codexToResource(item, index));
             }
             return out;
@@ -401,11 +391,7 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
         case 'claude':
           resources = (config.claudeApiKeys ?? []).reduce<ProviderResource[]>(
             (out, item, index) => {
-              if (
-                !isApiKeyFunClaudeProvider(item) &&
-                !isCode0ClaudeProvider(item) &&
-                !isClaudeApiProvider(item)
-              ) {
+              if (!isCode0ClaudeProvider(item) && !isClaudeApiProvider(item)) {
                 out.push(claudeToResource(item, index));
               }
               return out;
@@ -430,7 +416,7 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
         case 'openaiCompatibility':
           resources = (config.openaiCompatibility ?? []).reduce<ProviderResource[]>(
             (out, item, index) => {
-              if (!isApiKeyFunOpenAIProvider(item) && !isCode0OpenAIProvider(item)) {
+              if (!isCode0OpenAIProvider(item)) {
                 out.push(openaiToResource(item, index));
               }
               return out;
@@ -438,11 +424,6 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
             []
           );
           break;
-        case 'apikeyFun': {
-          const sponsorResource = apiKeyFunToResource(buildApiKeyFunRaw(config));
-          resources = sponsorResource ? [sponsorResource] : [];
-          break;
-        }
         case 'code0': {
           const sponsorResource = code0ToResource(buildCode0Raw(config));
           resources = sponsorResource ? [sponsorResource] : [];
@@ -505,7 +486,7 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
   const persistSponsorConfig = useCallback(
     async (brand: SponsorProviderBrand, input: ProviderEntryFormInput) => {
       const definition = getSponsorProviderDefinition(brand);
-      const raw = brand === 'apikeyFun' ? buildApiKeyFunRaw(config) : buildCode0Raw(config);
+      const raw = buildCode0Raw(config);
       const geminiList = config?.geminiApiKeys ?? [];
       const openaiList = config?.openaiCompatibility ?? [];
       const claudeList = config?.claudeApiKeys ?? [];
@@ -617,7 +598,7 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
           const next = [...(config?.openaiCompatibility ?? [])];
           next.push(buildOpenAIConfig(input));
           await persistOpenAIConfigs(next);
-        } else if (brand === 'apikeyFun' || brand === 'code0') {
+        } else if (brand === 'code0') {
           await persistSponsorConfig(brand, input);
         }
         refreshSnapshot();
@@ -673,7 +654,7 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
           const existing = list[idx];
           list[idx] = buildOpenAIConfig(input, existing);
           await persistOpenAIConfigs(list);
-        } else if (brand === 'apikeyFun' || brand === 'code0') {
+        } else if (brand === 'code0') {
           await persistSponsorConfig(brand, input);
         }
         refreshSnapshot();
@@ -722,7 +703,7 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
           await providersApi.deleteOpenAIProvider(sel.index);
           const next = (config?.openaiCompatibility ?? []).filter((_, i) => i !== sel.index);
           updateConfigValue('openai-compatibility', next);
-        } else if (sel.brand === 'apikeyFun' || sel.brand === 'code0') {
+        } else if (sel.brand === 'code0') {
           const nextGemini = (config?.geminiApiKeys ?? []).filter(
             (_, index) => !sel.geminiIndices.includes(index)
           );
@@ -801,27 +782,6 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
             list[idx] = { ...current, disabled };
             updateConfigValue('openai-compatibility', list);
           }
-        } else if (brand === 'apikeyFun') {
-          const claudeList = (config?.claudeApiKeys ?? []).map((item) => {
-            if (!isApiKeyFunClaudeProvider(item)) return item;
-            const excluded = disabled
-              ? withDisableAllModelsRule(item.excludedModels)
-              : withoutDisableAllModelsRule(item.excludedModels);
-            return { ...item, excludedModels: excluded };
-          });
-          const codexList = (config?.codexApiKeys ?? []).map((item) => {
-            if (!isApiKeyFunCodexProvider(item)) return item;
-            const excluded = disabled
-              ? withDisableAllModelsRule(item.excludedModels)
-              : withoutDisableAllModelsRule(item.excludedModels);
-            return { ...item, excludedModels: excluded };
-          });
-          const openaiList = (config?.openaiCompatibility ?? []).map((item) =>
-            isApiKeyFunOpenAIProvider(item) ? { ...item, disabled } : item
-          );
-          await persistCodexConfigs(codexList);
-          await persistClaudeConfigs(claudeList);
-          await persistOpenAIConfigs(openaiList);
         } else if (brand === 'code0') {
           const geminiList = (config?.geminiApiKeys ?? []).map((item) => {
             if (!isCode0GeminiProvider(item)) return item;
