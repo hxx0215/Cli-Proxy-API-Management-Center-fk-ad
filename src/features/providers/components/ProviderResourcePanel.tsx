@@ -71,7 +71,6 @@ export function ProviderResourcePanel({
     .join(' ');
   const darkLogoClassName = [styles.logo, styles.logoThemeDark].filter(Boolean).join(' ');
 
-  const realResources = filteredResources.filter((r) => !r.flags.isPlaceholder);
   const titleContent = (
     <>
       {logo ? (
@@ -135,7 +134,7 @@ export function ProviderResourcePanel({
         ) : null}
       </div>
 
-      {realResources.length === 0 ? (
+      {filteredResources.length === 0 ? (
         <div className={styles.empty}>
           <div>{emptyText}</div>
           <div className={styles.emptyAction}>
