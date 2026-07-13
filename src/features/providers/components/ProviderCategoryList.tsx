@@ -9,7 +9,7 @@ interface ProviderCategoryListProps {
   onSelect: (brand: ProviderBrand) => void;
 }
 
-const QUICK_FILL_BRANDS: ReadonlySet<ProviderBrand> = new Set(['code0', 'claudeApi']);
+const QUICK_FILL_BRANDS: ReadonlySet<ProviderBrand> = new Set(['claudeApi']);
 
 export function ProviderCategoryList({ groups, activeBrand, onSelect }: ProviderCategoryListProps) {
   const { t } = useTranslation();

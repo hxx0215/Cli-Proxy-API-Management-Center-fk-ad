@@ -1,9 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import { IconExternalLink, IconPlus, IconSearch } from '@/components/ui/icons';
+import { IconPlus, IconSearch } from '@/components/ui/icons';
 import type { ProviderRecentUsageMap } from '@/components/providers/utils';
 import { PROVIDER_LOGOS } from '../brandLogos';
-import { CLAUDE_API_AFFILIATE_URL } from '../claudeApi';
-import { getSponsorProviderDefinition } from '../sponsorDefinitions';
 import type { ProviderGroup, ProviderResource } from '../types';
 import { ProviderResourceTable } from './ProviderResourceTable';
 import { ProviderResourceToolbar } from './ProviderResourceToolbar';
@@ -54,13 +52,6 @@ export function ProviderResourcePanel({
   const { t } = useTranslation();
   const logo = PROVIDER_LOGOS[group.id];
   const providerTitle = t(`providersPage.providerNames.${group.id}`);
-  const showClaudeApiSponsorLink = group.id === 'claudeApi';
-  const registrationUrl =
-    group.id === 'claudeApi'
-      ? CLAUDE_API_AFFILIATE_URL
-      : group.id === 'code0'
-        ? getSponsorProviderDefinition('code0').affiliateUrl
-        : null;
   const emptyText = t('providersPage.table.empty');
   const logoClassName = [
     styles.logo,
@@ -91,19 +82,6 @@ export function ProviderResourcePanel({
         <div className={styles.headerMain}>
           <div className={styles.titleArea}>
             <div className={styles.titleRow}>{titleContent}</div>
-            {showClaudeApiSponsorLink || registrationUrl ? (
-              <a
-                className={`${styles.sponsorLink} ${styles.sponsorLinkEmphasis}`}
-                href={registrationUrl ?? CLAUDE_API_AFFILIATE_URL}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <span className={styles.sponsorLinkText}>
-                  {t('providersPage.sponsor.registerLink')}
-                </span>
-                <IconExternalLink className={styles.sponsorLinkIcon} size={14} />
-              </a>
-            ) : null}
           </div>
           <div className={styles.searchWrap}>
             <span className={styles.searchIcon} aria-hidden="true">
