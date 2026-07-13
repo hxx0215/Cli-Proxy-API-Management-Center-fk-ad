@@ -7,7 +7,12 @@ import {
   getCode0ProtocolUrls,
   resolveCode0BaseUrl,
 } from './code0';
-import type { ProviderBrand, SponsorProtocol, SponsorProviderBrand } from './types';
+import type {
+  ProviderBrand,
+  SponsorProtocol,
+  SponsorProviderBrand,
+  SponsorProviderRaw,
+} from './types';
 
 export interface SponsorProtocolUrls {
   anthropic: string;
@@ -58,6 +63,29 @@ const SPONSOR_DEFINITIONS: Record<SponsorProviderBrand, SponsorProviderDefinitio
 
 export const isMultiProtocolSponsorBrand = (brand: ProviderBrand): brand is SponsorProviderBrand =>
   brand === 'code0';
+
+export type SponsorAggregationConflict = 'multiple-configs' | 'multiple-openai-keys';
+
+export const getSponsorAggregationConflict = (
+  raw: SponsorProviderRaw | null | undefined
+): SponsorAggregationConflict | null => {
+  if (!raw) return null;
+  if (
+    raw.openai.length > 1 ||
+    raw.claude.length > 1 ||
+    raw.codex.length > 1 ||
+    raw.gemini.length > 1
+  ) {
+    return 'multiple-configs';
+  }
+
+  const openAIKeyCount = raw.openai.reduce(
+    (count, item) =>
+      count + (item.config.apiKeyEntries ?? []).filter((entry) => entry.apiKey?.trim()).length,
+    0
+  );
+  return openAIKeyCount > 1 ? 'multiple-openai-keys' : null;
+};
 
 export const getSponsorProviderDefinition = (
   brand: SponsorProviderBrand
