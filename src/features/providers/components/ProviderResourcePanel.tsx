@@ -55,12 +55,19 @@ export function ProviderResourcePanel({
   const emptyText = t('providersPage.table.empty');
   const logoClassName = [
     styles.logo,
+    logo?.themeSurface ? styles.logoThemeSurface : '',
     logo?.darkSrc ? styles.logoThemeLight : '',
     logo?.invertOnDark ? styles.logoInvertOnDark : '',
   ]
     .filter(Boolean)
     .join(' ');
-  const darkLogoClassName = [styles.logo, styles.logoThemeDark].filter(Boolean).join(' ');
+  const darkLogoClassName = [
+    styles.logo,
+    logo?.themeSurface ? styles.logoThemeSurface : '',
+    styles.logoThemeDark,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const titleContent = (
     <>

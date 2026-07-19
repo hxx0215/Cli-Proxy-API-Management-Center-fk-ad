@@ -9,12 +9,21 @@ interface ProviderCategoryListProps {
   onSelect: (brand: ProviderBrand) => void;
 }
 
-const QUICK_FILL_BRANDS: ReadonlySet<ProviderBrand> = new Set(['claudeApi']);
+const QUICK_FILL_BRAND_ORDER: readonly ProviderBrand[] = [
+  'claudeApi',
+];
+
+const QUICK_FILL_BRANDS: ReadonlySet<ProviderBrand> = new Set(QUICK_FILL_BRAND_ORDER);
 
 export function ProviderCategoryList({ groups, activeBrand, onSelect }: ProviderCategoryListProps) {
   const { t } = useTranslation();
 
-  const quickFillGroups = groups.filter((g) => QUICK_FILL_BRANDS.has(g.id));
+  const quickFillGroups = groups
+    .filter((g) => QUICK_FILL_BRANDS.has(g.id))
+    .sort(
+      (left, right) =>
+        QUICK_FILL_BRAND_ORDER.indexOf(left.id) - QUICK_FILL_BRAND_ORDER.indexOf(right.id)
+    );
   const providerGroups = groups.filter((g) => !QUICK_FILL_BRANDS.has(g.id));
 
   const renderGroups = (items: ProviderGroup[]) => (
@@ -28,6 +37,7 @@ export function ProviderCategoryList({ groups, activeBrand, onSelect }: Provider
         const logoClassName = [
           styles.logo,
           logo?.transparent ? styles.logoTransparent : '',
+          logo?.themeSurface ? styles.logoThemeSurface : '',
           logo?.darkSrc ? styles.logoThemeLight : '',
           logo?.invertOnDark ? styles.logoInvertOnDark : '',
         ]
@@ -36,6 +46,7 @@ export function ProviderCategoryList({ groups, activeBrand, onSelect }: Provider
         const darkLogoClassName = [
           styles.logo,
           logo?.transparent ? styles.logoTransparent : '',
+          logo?.themeSurface ? styles.logoThemeSurface : '',
           styles.logoThemeDark,
         ]
           .filter(Boolean)
