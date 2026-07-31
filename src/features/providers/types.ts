@@ -2,8 +2,11 @@
  * AI 提供商 Workbench 视图模型(归一化各 brand 的异构 config)
  */
 
+import type { ThinkingLevel } from './thinkingLevels';
+
 export type ProviderBrand =
   | 'gemini'
+  | 'interactions'
   | 'codex'
   | 'xai'
   | 'claude'
@@ -19,6 +22,7 @@ export type SortDir = (typeof SORT_DIR_VALUES)[number];
 
 export type ProviderResourceSelector =
   | { brand: 'gemini'; apiKey: string; baseUrl?: string; index: number }
+  | { brand: 'interactions'; apiKey: string; baseUrl?: string; index: number }
   | { brand: 'codex'; apiKey: string; baseUrl?: string; index: number }
   | { brand: 'xai'; apiKey: string; baseUrl?: string; index: number }
   | { brand: 'claude'; apiKey: string; baseUrl?: string; index: number }
@@ -88,13 +92,17 @@ export interface ModelEntryInput {
   priority?: number;
   testModel?: string;
   image?: boolean;
+  /** Original backend value, preserved until the standard-level selector is changed. */
   thinkingJson?: string;
+  thinkingLevels?: ThinkingLevel[];
+  thinkingLevelsTouched?: boolean;
 }
 
 export interface ApiKeyEntryInput {
   apiKey: string;
   existingApiKey?: string;
   proxyUrl: string;
+  weight?: number;
   authIndex?: string;
 }
 
@@ -116,6 +124,7 @@ export interface ProviderEntryFormInput {
   disabled: boolean;
   disableCooling?: boolean;
   priority?: number;
+  weight?: number;
 
   /** 高级折叠区 */
   models: ModelEntryInput[];
