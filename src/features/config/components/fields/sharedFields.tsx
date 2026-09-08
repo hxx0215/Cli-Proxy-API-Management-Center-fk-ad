@@ -54,7 +54,7 @@ export function PortField({
 export function ProxyUrlField({ values, disabled, onChange }: SharedFieldProps) {
   const { t } = useTranslation();
   return (
-    <FieldAnchor fieldId="proxyUrl">
+    <FieldAnchor fieldId="proxyUrl" wide>
       <Input
         label={t('config_management.visual.sections.network.proxy_url')}
         placeholder="socks5://user:pass@127.0.0.1:1080/"
