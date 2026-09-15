@@ -6,7 +6,13 @@ import {
   withDisableAllModelsRule,
   withoutDisableAllModelsRule,
 } from '@/components/providers/utils';
-import type { GeminiKeyConfig, ModelAlias, OpenAIProviderConfig, ProviderKeyConfig } from '@/types';
+import type {
+  Config,
+  GeminiKeyConfig,
+  ModelAlias,
+  OpenAIProviderConfig,
+  ProviderKeyConfig,
+} from '@/types';
 import {
   claudeApiToResource,
   claudeToResource,
@@ -208,6 +214,57 @@ const buildOpenAIConfig = (
   };
 };
 
+export const buildProviderGroups = (config: Config): ProviderGroup[] =>
+  PROVIDER_BRAND_ORDER.map((brand) => {
+    let resources: ProviderResource[] = [];
+    switch (brand) {
+      case 'gemini':
+        resources = (config.geminiApiKeys ?? []).map((item, index) =>
+          geminiToResource(item, index)
+        );
+        break;
+      case 'interactions':
+        resources = (config.interactionsApiKeys ?? []).map((item, index) =>
+          interactionsToResource(item, index)
+        );
+        break;
+      case 'codex':
+        resources = (config.codexApiKeys ?? []).map((item, index) => codexToResource(item, index));
+        break;
+      case 'xai':
+        resources = (config.xaiApiKeys ?? []).map((item, index) => xaiToResource(item, index));
+        break;
+      case 'claude':
+        resources = (config.claudeApiKeys ?? []).reduce<ProviderResource[]>((out, item, index) => {
+          if (!isClaudeApiProvider(item)) {
+            out.push(claudeToResource(item, index));
+          }
+          return out;
+        }, []);
+        break;
+      case 'claudeApi':
+        resources = (config.claudeApiKeys ?? []).reduce<ProviderResource[]>((out, item, index) => {
+          if (isClaudeApiProvider(item)) {
+            out.push(claudeApiToResource(item, index));
+          }
+          return out;
+        }, []);
+        break;
+      case 'vertex':
+        resources = (config.vertexApiKeys ?? []).map((c, i) => vertexToResource(c, i));
+        break;
+      case 'openaiCompatibility':
+        resources = (config.openaiCompatibility ?? []).map((item, index) =>
+          openaiToResource(item, index)
+        );
+        break;
+    }
+    return {
+      id: brand,
+      resources,
+    };
+  });
+
 /* -------------------------------------------------------------------------- */
 /* hook                                                                       */
 /* -------------------------------------------------------------------------- */
@@ -271,66 +328,10 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
 
   const snapshot = useMemo<ProviderSnapshot | null>(() => {
     if (!config) return null;
-    const groups: ProviderGroup[] = PROVIDER_BRAND_ORDER.map((brand) => {
-      let resources: ProviderResource[] = [];
-      switch (brand) {
-        case 'gemini':
-          resources = (config.geminiApiKeys ?? []).map((item, index) =>
-            geminiToResource(item, index)
-          );
-          break;
-        case 'interactions':
-          resources = (config.interactionsApiKeys ?? []).map((item, index) =>
-            interactionsToResource(item, index)
-          );
-          break;
-        case 'codex':
-          resources = (config.codexApiKeys ?? []).map((item, index) =>
-            codexToResource(item, index)
-          );
-          break;
-        case 'xai':
-          resources = (config.xaiApiKeys ?? []).map((item, index) => xaiToResource(item, index));
-          break;
-        case 'claude':
-          resources = (config.claudeApiKeys ?? []).reduce<ProviderResource[]>(
-            (out, item, index) => {
-              if (!isClaudeApiProvider(item)) {
-                out.push(claudeToResource(item, index));
-              }
-              return out;
-            },
-            []
-          );
-          break;
-        case 'claudeApi':
-          resources = (config.claudeApiKeys ?? []).reduce<ProviderResource[]>(
-            (out, item, index) => {
-              if (isClaudeApiProvider(item)) {
-                out.push(claudeApiToResource(item, index));
-              }
-              return out;
-            },
-            []
-          );
-          break;
-        case 'vertex':
-          resources = (config.vertexApiKeys ?? []).map((c, i) => vertexToResource(c, i));
-          break;
-        case 'openaiCompatibility':
-          resources = (config.openaiCompatibility ?? []).map((item, index) =>
-            openaiToResource(item, index)
-          );
-          break;
-      }
-      return {
-        id: brand,
-        resources,
-      };
-    });
+
     return {
       fetchedAt,
-      groups,
+      groups: buildProviderGroups(config),
     };
   }, [config, fetchedAt]);
 

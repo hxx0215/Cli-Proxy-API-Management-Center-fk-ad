@@ -36,12 +36,8 @@ describe('Claude fingerprint profile', () => {
         fingerprintProfile: 'claude-code-cli',
       },
     ]);
-    expect(claudeToResource(config.claudeApiKeys![0], 0).flags.claudeCodeCliProfile).toBe(
-      true
-    );
-    expect(claudeApiToResource(config.claudeApiKeys![0], 0).flags.claudeCodeCliProfile).toBe(
-      true
-    );
+    expect(claudeToResource(config.claudeApiKeys![0], 0).flags.claudeCodeCliProfile).toBe(true);
+    expect(claudeApiToResource(config.claudeApiKeys![0], 0).flags.claudeCodeCliProfile).toBe(true);
   });
 
   test('serializes the opt-in profile when creating a Claude key', async () => {
