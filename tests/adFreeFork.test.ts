@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, spyOn, test } from 'bun:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import i18n from '@/i18n';
@@ -9,6 +9,7 @@ import { ProviderCategoryList } from '@/features/providers/components/ProviderCa
 import { PROVIDER_BRAND_ORDER } from '@/features/providers/descriptors';
 import type { ProviderSnapshot } from '@/features/providers/types';
 import { useProviderWorkbench } from '@/features/providers/useProviderWorkbench';
+import { providersApi } from '@/services/api';
 import { useConfigStore } from '@/stores/useConfigStore';
 import type { Config, ProviderKeyConfig } from '@/types';
 import { DEFAULT_VISUAL_VALUES } from '@/types/visualConfig';
@@ -56,6 +57,7 @@ describe('ad-free fork', () => {
       'gemini',
       'interactions',
       'codex',
+      'meta',
       'xai',
       'claude',
       'vertex',
@@ -146,5 +148,36 @@ describe('ad-free fork', () => {
   test('preserves normal Kimi OAuth and removes the sponsor-only quick-start route', () => {
     expect(readSource('src/pages/OAuthPage.tsx')).toMatch(/kind: 'builtin',\s+id: 'kimi'/);
     expect(readSource('src/router/MainRoutes.tsx')).not.toContain('/quick-start');
+  });
+
+  test('deleting a ClaudeAPI credential retains its v8 source selector', async () => {
+    const source = { groupIndex: 2, keyIndex: 1, group: { name: 'fixture-group' } };
+    const config: Config = {
+      claudeApiKeys: [{ apiKey: 'fixture-key', baseUrl: CLAUDE_API_BASE_URL, source }],
+    };
+    const initialState = useConfigStore.getInitialState();
+    const originalConfig = initialState.config;
+    const remove = spyOn(providersApi, 'deleteClaudeConfig').mockResolvedValue(undefined);
+    const fetch = spyOn(initialState, 'fetchConfig').mockResolvedValue(config);
+    const update = spyOn(initialState, 'updateConfigValue').mockImplementation(() => {});
+    const vertex = spyOn(providersApi, 'getVertexConfigs').mockResolvedValue([]);
+    const openai = spyOn(providersApi, 'getOpenAIProviders').mockResolvedValue([]);
+    const captures: ReturnType<typeof useProviderWorkbench>[] = [];
+    function Harness() {
+      captures.push(useProviderWorkbench());
+      return null;
+    }
+    try {
+      initialState.config = config;
+      renderToStaticMarkup(createElement(Harness));
+      const workbench = captures[0];
+      const resource = workbench.snapshot!.groups.find((group) => group.id === 'claudeApi')!
+        .resources[0];
+      await workbench.deleteProvider(resource);
+      expect(remove).toHaveBeenCalledWith('fixture-key', CLAUDE_API_BASE_URL, source);
+    } finally {
+      initialState.config = originalConfig;
+      for (const mock of [remove, fetch, update, vertex, openai]) mock.mockRestore();
+    }
   });
 });
